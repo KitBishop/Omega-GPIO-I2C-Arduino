@@ -1,0 +1,90 @@
+# Ensure that pin directions set appropriately by using the -s option
+-s
+
+# Use the -q option to suppress extraneous output
+-q
+
+# Set 'conut' variable to 0
+assign count 0
+
+# Ensure expled is turned off
+expled rgb 0 0 0
+
+# Initial instruction to start main processing loop
+exec "echo"
+exec "echo"
+exec "echo Ensure pin 0 is connected to a high to start main processing"
+
+# Wait until pin 0 is high
+while !$0
+endwhile
+
+# Clear file stop.txt to start with 0
+fileout stop.txt 0
+
+# Provide feedback on how to stop main processing loop
+exec "echo"
+exec "echo Main processing started by pin 0 being connected to a high"
+exec "echo It will continue until pin 0 is low or the file \'stop.txt\'"
+exec "echo ' starts with a line containing 99'"
+exec "echo"
+
+# Main processing loop runs so long as pin 0 is high
+while $0
+
+# Set expled to red when count is a multiple of 3
+    if "(count % 3) == 0"
+	expled rgb 100 0 0
+    endif
+
+# Set expled to green when count is a (multiple of 3) + 1
+    if "(count % 3) == 1"
+	expled rgb 0 100 0
+    endif
+
+# Set expled to blue when count is a (multiple of 3) + 2
+    if "(count % 3) == 2"
+	expled rgb 0 0 100
+    endif
+
+# Delay for 1 second
+    delay 1000
+
+# Display current count when count is a multiple of 10
+    if "((count % 10) == 0) && (count != 0)"
+	exec "echo count is now {count}"
+    endif
+    
+# Increment count    
+    assign count "count+1"
+
+# Check that file stop.txt exists
+# Actually redundant since if it doesn't reading from it will return 0 anyway
+    if $[stop.txt]
+
+# Read first line from file stop.txt to variable stopval
+	filein "stop.txt" stopval
+
+# Test if stopval read is 99 and break main loop
+	if "stopval == 99"
+	    break
+	endif
+    endif
+    
+# End of while loop    
+endwhile
+
+# Report on reason that main loop ended
+if $[stop.txt]
+    exec "echo"
+    exec "echo Processing ended by existence of \'stop.txt\' starting with line with value 99"
+else  
+    exec "echo"
+    exec "echo Processing ended by pin 0 going low"
+endif
+
+# Turn expled off
+expled rgb 0 0 0
+
+# Stop process responsible for running expled
+expledstop

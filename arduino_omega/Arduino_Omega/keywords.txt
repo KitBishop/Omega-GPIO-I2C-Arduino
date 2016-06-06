@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For omega_access
+####################################### 
+# Class
+#######################################
+
+OmegaAccess	KEYWORD1
+OmegaPort	KEYWORD1
+OmegaArduinoSystemPort	KEYWORD1
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+begin	KEYWORD2
+setI2CAddr	KEYWORD2
+setSignalPin	KEYWORD2
+registerPort	KEYWORD2
+signalOmega	KEYWORD2
+getPortNumber	KEYWORD2
+processCommand	KEYWORD2
+
+#######################################
+# Typedefs
+######################################
+
+LinkData	KEYWORD3
+ResponseData	KEYWORD3
+
+#######################################
+# Constants
+#######################################
+ 
+ARDUINO_OK	LITERAL1
+ARDUINO_UNKNOWN_COMMAND	LITERAL1
+ARDUINO_DATA_ERR	LITERAL1
+ARDUINO_I2C_ERR	LITERAL1
+ARDUINO_BAD_PIN	LITERAL1
+ARDUINO_BAD_PORT	LITERAL1
+ARDUINO_SIG_PENDING	LITERAL1
+ARDUINO_BAD_SIG	LITERAL1
+ARDUINO_BAD_READ_LEN	LITERAL1
+ARDUINO_NO_LINK	LITERAL1
