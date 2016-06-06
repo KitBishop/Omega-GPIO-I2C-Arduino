@@ -1,4 +1,4 @@
-# Makefile to package omega-access Arduino library in a .zip file
+# Makefile to package arduino-omega Arduino library in a .zip file
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 SHELL := /bin/bash
