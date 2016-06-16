@@ -77,3 +77,19 @@ I2C_Result I2CDevice::readBuffer(unsigned char regAddr, I2C_Data & data, int num
 unsigned char I2CDevice::getDevAddr() {
     return deviceAddr;
 }
+
+void I2CDevice::setRetryDelay(unsigned int delayMS) {
+    I2CAccess::setRetryDelay(deviceAddr, delayMS);
+}
+
+void I2CDevice::setRetryCount(int count) {
+    I2CAccess::setRetryCount(deviceAddr, count);
+}
+
+unsigned int I2CDevice::getRetryDelay() {
+    return I2CAccess::getRetryDelay(deviceAddr);
+}
+
+int I2CDevice::getRetryCount() {
+    return I2CAccess::getRetryCount(deviceAddr);
+}

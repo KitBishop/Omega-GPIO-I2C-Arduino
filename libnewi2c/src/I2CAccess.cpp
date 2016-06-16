@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
@@ -17,6 +18,7 @@
 
 int I2CAccess::i2cChannelFD = -1;
 int I2CAccess::channelNumber = DEFAULT_I2C_CHANNEL;
+map<unsigned char, RetryInfo> I2CAccess::retryInfo = map<unsigned char, RetryInfo>();
 
 bool I2CAccess::isAccessOk() {
     return checkAndSetupChannel() == I2C_OK;
@@ -110,9 +112,39 @@ I2C_Result I2CAccess::writeBuffer(unsigned char devAddr, I2C_Data data) {
     I2C_Result res = checkAndSetupDev(devAddr);
     
     if (res == I2C_OK) {
+        unsigned int retryDelay = getRetryDelay(devAddr);
+        int retryCount = getRetryCount(devAddr);
+        int retryLeft = retryCount;
+        bool done = false;
+        do {
+            res = I2C_OK;
+            int sizewritten = write(i2cChannelFD, data.data, data.size);
+            int eno = errno;
+            if ((eno != 0) && (eno != 2) && (eno != 6)) {
+                res = I2C_BAD_ACCESS;
+            } else if (sizewritten != data.size) {
+                res = I2C_BAD_WRITE;
+            }
+            done = res == I2C_OK;
+            if (!done) {
+                if (retryCount >= 0) {
+                    if (retryCount == 0) {
+                        done = true;
+                    } else {
+                        retryLeft--;
+                        if (retryLeft <= 0) {
+                            done = true;
+                        }
+                    }
+                }
+            }
+            if ((!done) && (retryDelay > 0)) {
+                usleep(retryDelay * 1000L);
+            }
+        } while (!done);
         
-        if (write(i2cChannelFD, data.data, data.size) != data.size) {
-            res = I2C_BAD_WRITE;
+        if (res != I2C_OK) {
+            res = I2C_TIME_OUT;
         }
     }
     
@@ -204,16 +236,49 @@ I2C_Result I2CAccess::read32(unsigned char devAddr, unsigned long & val) {
 
 I2C_Result I2CAccess::readBuffer(unsigned char devAddr, I2C_Data & data, int numBytes) {
     I2C_Result res = checkAndSetupDev(devAddr);
+
+    data.size = 0;
     
     if (res == I2C_OK) {
-        // Read the data 
-        if (numBytes > 0) {
-            int numRead;
-            numRead = read(i2cChannelFD, &data.data[0], numBytes);
-            if (numRead < 0) {
-                res = I2C_BAD_READ_LEN;
+        unsigned int retryDelay = getRetryDelay(devAddr);
+        int retryCount = getRetryCount(devAddr);
+        int retryLeft = retryCount;
+        bool done = false;
+        do {
+            res = I2C_OK;
+            // Read the data 
+            if (numBytes > 0) {
+                int numRead;
+                int numToRead = numBytes;
+                numRead = read(i2cChannelFD, &data.data[0], numToRead);
+                int eno = errno;
+                if ((eno != 0) && (eno != 2) && (eno != 6)) {
+                    res = I2C_BAD_ACCESS;
+                } else if (numRead < 0) {
+                    res = I2C_BAD_READ_LEN;
+                }
+                data.size = numRead;
             }
-            data.size = numRead;
+            done = res == I2C_OK;
+            if (!done) {
+                if (retryCount >= 0) {
+                    if (retryCount == 0) {
+                        done = true;
+                    } else {
+                        retryLeft--;
+                        if (retryLeft <= 0) {
+                            done = true;
+                        }
+                    }
+                }
+            }
+            if ((!done) && (retryDelay > 0)) {
+                usleep(retryDelay * 1000L);
+            }
+        } while (!done);
+        
+        if (res != I2C_OK) {
+            res = I2C_TIME_OUT;
         }
     }
     
@@ -280,4 +345,56 @@ I2C_Result I2CAccess::readBuffer(unsigned char devAddr, unsigned char regAddr, I
 
 char * I2CAccess::getLibVersion() {
     return (char *)i2cLibraryVersion;
+}
+
+void I2CAccess::setRetryDelay(unsigned char devAddr, unsigned int delayMS) {
+    RetryInfo rInf;
+    auto infItem = retryInfo.find(devAddr);
+    if (infItem == retryInfo.end()) {
+        rInf.delayMS = delayMS;
+        rInf.count = 10;
+        
+        retryInfo.insert(std::make_pair(devAddr, rInf));
+    } else {
+        rInf.delayMS = delayMS;
+        rInf.count = infItem->second.count;
+
+        retryInfo.erase(devAddr);
+        retryInfo.insert(std::make_pair(devAddr, rInf));
+    }
+}
+
+void I2CAccess::setRetryCount(unsigned char devAddr, int count) {
+    RetryInfo rInf;
+    auto infItem = retryInfo.find(devAddr);
+    if (infItem == retryInfo.end()) {
+        rInf.delayMS = 1;
+        rInf.count = count;
+        
+        retryInfo.insert(std::make_pair(devAddr, rInf));
+    } else {
+        rInf.delayMS = infItem->second.delayMS;
+        rInf.count = count;
+
+        retryInfo.erase(devAddr);
+        retryInfo.insert(std::make_pair(devAddr, rInf));
+    }
+}
+
+unsigned int I2CAccess::getRetryDelay(unsigned char devAddr) {
+    auto infItem = retryInfo.find(devAddr);
+    if (infItem == retryInfo.end()) {
+        return 1;
+    } else {
+        return infItem->second.delayMS;
+    }
+}
+
+int I2CAccess::getRetryCount(unsigned char devAddr) {
+    auto infItem = retryInfo.find(devAddr);
+    if (infItem == retryInfo.end()) {
+        return 10;
+    } else {
+        return infItem->second.count;
+    }
 }

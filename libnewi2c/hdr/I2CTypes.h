@@ -17,10 +17,9 @@ enum I2C_Result {
     I2C_BAD_READ = 4,
     I2C_BAD_READ_ADDR = 5,
     I2C_BAD_READ_LEN = 6,
-    I2C_BAD_PROBE = 7
+    I2C_BAD_PROBE = 7,
+    I2C_TIME_OUT = 8
 };
-
-//typedef uint8_t I2C_Buffer[I2C_BUFFER_SIZE], * I2C_Buffer_P;
 
 typedef struct I2C_Data {
     int size;

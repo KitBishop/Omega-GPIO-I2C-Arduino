@@ -29,6 +29,11 @@ public:
     I2C_Result read16(unsigned char regAddr, unsigned int & val);
     I2C_Result read32(unsigned char regAddr, unsigned long & val);
     I2C_Result readBuffer(unsigned char regAddr, I2C_Data & data, int numBytes);
+
+    void setRetryDelay(unsigned int delayMS);
+    void setRetryCount(int count);
+    unsigned int getRetryDelay();
+    int getRetryCount();
     
     unsigned char getDevAddr();
     
