@@ -26,8 +26,8 @@ enum GPIO_Irq_Type {
 };
 
 enum GPIO_Bit_Order {
-    GPIO_MSB_FIRST = 0,
-    GPIO_LSB_FIRST = 1
+    GPIO_LSB_FIRST = 0,
+    GPIO_MSB_FIRST = 1
 };
 
 typedef void (*GPIO_Irq_Handler_Func) (int pinNum, GPIO_Irq_Type type);

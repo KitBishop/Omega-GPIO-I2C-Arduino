@@ -1,0 +1,6 @@
+Current Version: 1.4.1
+
+Version Change History
+======================
+16 June 2016 - Version 1.4.1
+First full version derived from earlier libnew-gpio code
