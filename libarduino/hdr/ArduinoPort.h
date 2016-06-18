@@ -19,6 +19,8 @@ public:
     ArduinoPort(unsigned char portN);
     ArduinoPort(unsigned char devAddr, unsigned char portN);
     
+    Arduino_Result reboot();
+    
     Arduino_Result sendCmd(unsigned char cmd);
     Arduino_Result send8(unsigned char cmd, unsigned char val);
     Arduino_Result send16(unsigned char cmd, unsigned int val);
@@ -31,8 +33,13 @@ public:
     Arduino_Result get32(unsigned long & val);
     Arduino_Result getBuffer(I2C_Data & i2cData, int numBytes);
 
-    void setResponseDelayMS(unsigned long MS);
+    void setResponseDelayMS(unsigned long delayMS);
     unsigned long getResponseDelayMS();
+    
+    void setRetryDelay(unsigned int delayMS);
+    void setRetryCount(int count);
+    unsigned int getRetryDelay();
+    int getRetryCount();
 
     Arduino_Result setSignalHandler(int pin, Arduino_Sig_Handler_Func handler);
     Arduino_Result setSignalHandler(int pin, Arduino_Sig_Handler_Object * handlerObj);

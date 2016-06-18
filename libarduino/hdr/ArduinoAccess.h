@@ -12,6 +12,11 @@
 class ArduinoAccessSigHandler;
 class ArduinoPort;
 
+typedef struct SignalData {
+    unsigned char port;
+    I2C_Data linkData;
+} SignalData;
+
 class ArduinoAccess {
 friend ArduinoPort;
 friend ArduinoAccessSigHandler;
@@ -19,7 +24,7 @@ public:
     static Arduino_Result registerPort(ArduinoPort * arduinoPort);
     
     static Arduino_Result resetArduino(ArduinoPort * arduinoPort);
-    static Arduino_Result restartArduino(ArduinoPort * arduinoPort);
+    static Arduino_Result rebootArduino(ArduinoPort * arduinoPort);
     
     static Arduino_Result sendCmd(ArduinoPort * arduinoPort, unsigned char cmd);
     static Arduino_Result send8(ArduinoPort * arduinoPort, unsigned char cmd, unsigned char val);
@@ -38,14 +43,14 @@ private:
     static map<int, AccessInfo *> portInfo;
     
     static Arduino_Result sendCmd(unsigned char devAddr, unsigned char portN, unsigned char cmd);
-    static Arduino_Result get8(unsigned char devAddr, unsigned char portN, unsigned char & val, long int delayMS);
-    static Arduino_Result getBuffer(unsigned char devAddr, unsigned char portN, I2C_Data & i2cData, int numBytes, unsigned int delayMS);
+    static Arduino_Result get8(unsigned char devAddr, unsigned char & val, long int delayMS);
+    static Arduino_Result getBuffer(unsigned char devAddr, I2C_Data & i2cData, int numBytes, unsigned int delayMS);
     static Arduino_Result getSignalData(unsigned char devAddr, SignalData &sigData);
     
     static Arduino_Result setSignalHandler(ArduinoPort * arduinoPort, int pin);
     
     static Arduino_Result sendNBytes(ArduinoPort * arduinoPort, unsigned char cmd, unsigned long val, int numBytes);
-    static Arduino_Result getNBytes(unsigned char devAddr, unsigned char portN, unsigned long & val, int numBytes,long int delayMS);
+    static Arduino_Result getNBytes(unsigned char devAddr, unsigned long & val, int numBytes,long int delayMS);
 };
 
 #endif

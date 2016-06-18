@@ -5,6 +5,12 @@
 #include "GPIOAccess.h"
 #include "ArduinoAccessSigHandler.h"
 
+#define SIGNAL_PORT                 255
+
+#define ARDUINO_SIG_GETSIGPORT      253
+#define ARDUINO_SIG_GETSIGSZ        254
+#define ARDUINO_SIG_GETSIGDAT       255
+
 map<int, AccessInfo *> ArduinoAccess::portInfo = map<int, AccessInfo *>();
 
 Arduino_Result ArduinoAccess::registerPort(ArduinoPort * arduinoPort) {
@@ -46,11 +52,12 @@ Arduino_Result ArduinoAccess::sendNBytes(ArduinoPort * arduinoPort, unsigned cha
     return sendBuffer(arduinoPort, cmd, i2cData);
 }
 
-Arduino_Result ArduinoAccess::getNBytes(unsigned char devAddr, unsigned char portN, unsigned long & val, int numBytes,long int delayMS) {
+Arduino_Result ArduinoAccess::getNBytes(unsigned char devAddr, unsigned long & val, int numBytes,long int delayMS) {
     val = 0;
 
     I2C_Data i2cData;
-    Arduino_Result res = getBuffer(devAddr, portN, i2cData, numBytes, delayMS);
+
+    Arduino_Result res = getBuffer(devAddr, i2cData, numBytes, delayMS);
     if (res == ARDUINO_OK) {
         if (i2cData.size != numBytes) {
             res = ARDUINO_BAD_READ_LEN;
@@ -67,13 +74,15 @@ Arduino_Result ArduinoAccess::getNBytes(unsigned char devAddr, unsigned char por
 
 Arduino_Result ArduinoAccess::sendCmd(unsigned char devAddr, unsigned char portN, unsigned char cmd) {
     I2C_Result res = I2CAccess::write8(devAddr, portN, cmd);
+    
     if (res == I2C_OK) {
         return ARDUINO_OK;
+    } else if (res == I2C_TIME_OUT) {
+        return ARDUINO_TIMEOUT;
     } else {
         return ARDUINO_I2C_ERR;
     }
 }
-
 
 Arduino_Result ArduinoAccess::sendCmd(ArduinoPort * arduinoPort, unsigned char cmd) {
     return sendCmd(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, cmd);
@@ -99,6 +108,8 @@ Arduino_Result ArduinoAccess::sendBuffer(ArduinoPort * arduinoPort, unsigned cha
     I2C_Result res = I2CAccess::writeBuffer(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, i2cDataNew);
     if (res == I2C_OK) {
         return ARDUINO_OK;
+    } else if (res == I2C_TIME_OUT) {
+        return ARDUINO_TIMEOUT;
     } else {
         return ARDUINO_I2C_ERR;
     }
@@ -109,9 +120,10 @@ Arduino_Result ArduinoAccess::getStatus(ArduinoPort * arduinoPort) {
     return getBuffer(arduinoPort, i2cData, 0);
 }
 
-Arduino_Result ArduinoAccess::get8(unsigned char devAddr, unsigned char portN, unsigned char & val, long int delayMS) {
+Arduino_Result ArduinoAccess::get8(unsigned char devAddr, unsigned char & val, long int delayMS) {
     unsigned long v;
-    Arduino_Result res = getNBytes(devAddr, portN, v, 1, delayMS);
+
+    Arduino_Result res = getNBytes(devAddr, v, 1, delayMS);
     if (res == ARDUINO_OK) {
         val = v & 0xff;
     }
@@ -119,12 +131,13 @@ Arduino_Result ArduinoAccess::get8(unsigned char devAddr, unsigned char portN, u
 }
 
 Arduino_Result ArduinoAccess::get8(ArduinoPort * arduinoPort, unsigned char & val) {
-    return get8(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, val, arduinoPort->responseDelayMS);
+    return get8(arduinoPort->arduinoDevAddr, val, arduinoPort->responseDelayMS);
 }
 
 Arduino_Result ArduinoAccess::get16(ArduinoPort * arduinoPort, unsigned int & val) {
     unsigned long v;
-    Arduino_Result res = getNBytes(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, v, 2, arduinoPort->responseDelayMS);
+
+    Arduino_Result res = getNBytes(arduinoPort->arduinoDevAddr, v, 2, arduinoPort->responseDelayMS);
     if (res == ARDUINO_OK) {
         val = v & 0xffff;
     }
@@ -133,18 +146,24 @@ Arduino_Result ArduinoAccess::get16(ArduinoPort * arduinoPort, unsigned int & va
 
 Arduino_Result ArduinoAccess::get32(ArduinoPort * arduinoPort, unsigned long & val) {
     unsigned long v;
-    Arduino_Result res = getNBytes(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, v, 4, arduinoPort->responseDelayMS);
+
+    Arduino_Result res = getNBytes(arduinoPort->arduinoDevAddr, v, 4, arduinoPort->responseDelayMS);
     if (res == ARDUINO_OK) {
         val = v;
     }
     return res;
 }
 
-Arduino_Result ArduinoAccess::getBuffer(unsigned char devAddr, unsigned char portN, I2C_Data & i2cData, int numBytes, unsigned int delayMS) {
+Arduino_Result ArduinoAccess::getBuffer(unsigned char devAddr, I2C_Data & i2cData, int numBytes, unsigned int delayMS) {
     I2C_Data i2cReadData;
     usleep(delayMS * 1000L);
-    I2C_Result i2cRes = I2CAccess::readBuffer(devAddr, portN, i2cReadData, numBytes + 1);
+
+    I2C_Result i2cRes = I2CAccess::readBuffer(devAddr, i2cReadData, numBytes + 1);
     if (i2cRes == I2C_OK) {
+        if (i2cReadData.size <= 0) {
+            return ARDUINO_BAD_READ_LEN;
+        }
+        
         if (i2cReadData.data[0] == ARDUINO_OK) {
             int i;
             for (i = 0; i < (i2cReadData.size - 1); i++) {
@@ -155,13 +174,15 @@ Arduino_Result ArduinoAccess::getBuffer(unsigned char devAddr, unsigned char por
         } else {
             return (Arduino_Result)i2cReadData.data[0];
         }
+    } else if (i2cRes == I2C_TIME_OUT) {
+        return ARDUINO_TIMEOUT;
     } else {
         return ARDUINO_I2C_ERR;
     }
 }
 
 Arduino_Result ArduinoAccess::getBuffer(ArduinoPort * arduinoPort, I2C_Data & i2cData, int numBytes) {
-    return getBuffer(arduinoPort->arduinoDevAddr, arduinoPort->arduinoPortNum, i2cData, numBytes, arduinoPort->responseDelayMS);
+    return getBuffer(arduinoPort->arduinoDevAddr, i2cData, numBytes, arduinoPort->responseDelayMS);
 }
 
 Arduino_Result ArduinoAccess::setSignalHandler(ArduinoPort * arduinoPort, int pin) {
@@ -211,18 +232,21 @@ Arduino_Result ArduinoAccess::getSignalData(unsigned char devAddr, SignalData &s
     Arduino_Result res = sendCmd(devAddr, SIGNAL_PORT, ARDUINO_SIG_GETSIGPORT);
     if (res == ARDUINO_OK) {
         unsigned char sigP;
-        res = get8(devAddr, SIGNAL_PORT, sigP, 1);
+
+        res = get8(devAddr, sigP, 1);
         if (res == ARDUINO_OK) {
             sigData.port = sigP;
             Arduino_Result res = sendCmd(devAddr, SIGNAL_PORT, ARDUINO_SIG_GETSIGSZ);
             if (res == ARDUINO_OK) {
                 unsigned char sigSz;
-                res = get8(devAddr, SIGNAL_PORT, sigSz, 1);
+
+                res = get8(devAddr, sigSz, 1);
                 if (res == ARDUINO_OK) {
                     Arduino_Result res = sendCmd(devAddr, SIGNAL_PORT, ARDUINO_SIG_GETSIGDAT);
                     if (res == ARDUINO_OK) {
                         I2C_Data i2cData;
-                        res = getBuffer(devAddr, SIGNAL_PORT, i2cData, sigSz, 1);
+
+                        res = getBuffer(devAddr, i2cData, sigSz, 1);
                         if (res == ARDUINO_OK) {
                             int i;
                             for (i = 0; i < i2cData.size; i++) {
@@ -252,12 +276,14 @@ Arduino_Result ArduinoAccess::resetArduino(ArduinoPort * arduinoPort) {
     usleep(20000L);
     if (res == I2C_OK) {
         return ARDUINO_OK;
+    } else if (res == I2C_TIME_OUT) {
+        return ARDUINO_TIMEOUT;
     } else {
         return ARDUINO_I2C_ERR;
     }
 }
 
-Arduino_Result ArduinoAccess::restartArduino(ArduinoPort * arduinoPort) {
+Arduino_Result ArduinoAccess::rebootArduino(ArduinoPort * arduinoPort) {
     I2C_Data i2cData;
 
     i2cData.data[0] = 0xc0;
@@ -265,10 +291,12 @@ Arduino_Result ArduinoAccess::restartArduino(ArduinoPort * arduinoPort) {
     i2cData.size = 2;
 
     I2C_Result res = I2CAccess::writeBuffer(arduinoPort->arduinoDevAddr, i2cData);
-    // Wait for restart to take effect
+    // Wait for reboot to take effect
     usleep(1000L);
     if (res == I2C_OK) {
         return ARDUINO_OK;
+    } else if (res == I2C_TIME_OUT) {
+        return ARDUINO_TIMEOUT;
     } else {
         return ARDUINO_I2C_ERR;
     }

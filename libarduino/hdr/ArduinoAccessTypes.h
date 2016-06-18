@@ -1,5 +1,5 @@
-#ifndef ArduionAccessTypes_H
-#define ArduionAccessTypes_H
+#ifndef ArduinoAccessTypes_H
+#define ArduinoAccessTypes_H
 
 #include <unistd.h>
 
@@ -7,12 +7,6 @@
 
 #define DEFAULT_ARDUINO_DEV_ADDR    0x08
 #define DEFAULT_ARDUINO_SYSPORT     0
-
-#define SIGNAL_PORT                 255
-
-#define ARDUINO_SIG_GETSIGPORT      253
-#define ARDUINO_SIG_GETSIGSZ        254
-#define ARDUINO_SIG_GETSIGDAT       255
 
 enum Arduino_Result {
     ARDUINO_OK = 0,
@@ -24,19 +18,15 @@ enum Arduino_Result {
     ARDUINO_SIG_PENDING = 6,
     ARDUINO_BAD_SIG = 7,
     ARDUINO_BAD_READ_LEN = 8,
-    ARDUINO_NO_LINK = 9
+    ARDUINO_NO_LINK = 9,
+    ARDUINO_TIMEOUT = 10
 };
 
-typedef struct SignalData {
-    unsigned char port;
-    I2C_Data linkData;
-} SignalData;
-
-typedef void (*Arduino_Sig_Handler_Func) (I2C_Data &linkData);
+typedef void (*Arduino_Sig_Handler_Func) (unsigned char devAddr, unsigned char portN, I2C_Data &linkData);
 
 class Arduino_Sig_Handler_Object {
 public:
-    virtual void handleSignalData(I2C_Data &linkData) = 0;
+    virtual void handleSignalData(unsigned char devAddr, unsigned char portN, I2C_Data &linkData) = 0;
 };
 
 #endif

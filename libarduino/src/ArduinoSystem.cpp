@@ -42,6 +42,10 @@ Arduino_Result ArduinoSystem::setSignalHandler(int pin, Arduino_Sig_Handler_Obje
     return arduinoPort->setSignalHandler(pin, handlerObj);
 }
 
+Arduino_Result ArduinoSystem::reboot() {
+    return arduinoPort->reboot();
+}
+
 Arduino_Result ArduinoSystem::pinMode(unsigned char pin, ArduinoPinMode mode) {
     if (!pinOk(pin)) {
         return ARDUINO_BAD_PIN;
@@ -221,4 +225,20 @@ Arduino_Result ArduinoSystem::pulseIn(unsigned char pin, ArduinoPinVal pulseType
 
 bool ArduinoSystem::pinOk(unsigned char pin) {
     return (pin >= 0) && (pin <= MAX_PIN);
+}
+
+void ArduinoSystem::setRetryDelay(unsigned int delayMS) {
+    arduinoPort->setRetryDelay(delayMS);
+}
+
+void ArduinoSystem::setRetryCount(int count) {
+    arduinoPort->setRetryCount(count);
+}
+
+unsigned int ArduinoSystem::getRetryDelay() {
+    return arduinoPort->getRetryDelay();
+}
+
+int ArduinoSystem::getRetryCount() {
+    return arduinoPort->getRetryCount();
 }

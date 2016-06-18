@@ -36,9 +36,9 @@ void ArduinoAccessSigHandler::handleIrq(int pinNum, GPIO_Irq_Type type) {
             }
             
             if (port->sigHandler != NULL) {
-                port->sigHandler(sigData.linkData);
+                port->sigHandler(arduinoDevAddr, sigData.port, sigData.linkData);
             } else if (port->sigHandlerObj != NULL) {
-                port->sigHandlerObj->handleSignalData(sigData.linkData);
+                port->sigHandlerObj->handleSignalData(arduinoDevAddr, sigData.port, sigData.linkData);
             }
         }
     }

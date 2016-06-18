@@ -22,6 +22,10 @@ ArduinoPort::ArduinoPort(unsigned char devAddr, unsigned char portN) {
     ArduinoAccess::registerPort(this);
 }
 
+Arduino_Result ArduinoPort::reboot() {
+    return ArduinoAccess::rebootArduino(this);
+}
+
 Arduino_Result ArduinoPort::sendCmd(unsigned char cmd) {
     return ArduinoAccess::sendCmd(this, cmd);
 }
@@ -62,8 +66,8 @@ Arduino_Result ArduinoPort::getStatus() {
     return ArduinoAccess::getStatus(this);
 }
 
-void ArduinoPort::setResponseDelayMS(unsigned long MS) {
-    responseDelayMS = MS;
+void ArduinoPort::setResponseDelayMS(unsigned long delayMS) {
+    responseDelayMS = delayMS;
 }
 
 unsigned long ArduinoPort::getResponseDelayMS() {
@@ -94,4 +98,20 @@ Arduino_Result ArduinoPort::setSignalHandler(int pin, Arduino_Sig_Handler_Object
     }
     
     return res;
+}
+
+void ArduinoPort::setRetryDelay(unsigned int delayMS) {
+    I2CAccess::setRetryDelay(arduinoDevAddr, delayMS);
+}
+
+void ArduinoPort::setRetryCount(int count) {
+    I2CAccess::setRetryCount(arduinoDevAddr, count);
+}
+
+unsigned int ArduinoPort::getRetryDelay(){
+    return I2CAccess::getRetryDelay(arduinoDevAddr);
+}
+
+int ArduinoPort::getRetryCount() {
+    return I2CAccess::getRetryCount(arduinoDevAddr);
 }

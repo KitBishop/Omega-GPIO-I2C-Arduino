@@ -72,6 +72,13 @@ public:
     void setResponseDelayMS(unsigned long MS);
     unsigned long getResponseDelayMS();
 
+    void setRetryDelay(unsigned int delayMS);
+    void setRetryCount(int count);
+    unsigned int getRetryDelay();
+    int getRetryCount();
+    
+    Arduino_Result reboot();
+    
     Arduino_Result setSignalHandler(int pin, Arduino_Sig_Handler_Func handler);
     Arduino_Result setSignalHandler(int pin, Arduino_Sig_Handler_Object * handlerObj);
     
