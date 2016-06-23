@@ -4,12 +4,6 @@
 #define DEFAULT_ARDUINO_DEV_ADDR    0x08
 #define DEFAULT_ARDUINO_SYSPORT     0
 
-#define SIGNAL_PORT                 255
-
-#define ARDUINO_SIG_GETSIGPORT      253
-#define ARDUINO_SIG_GETSIGSZ        254
-#define ARDUINO_SIG_GETSIGDAT       255
-
 enum Arduino_Result {
     ARDUINO_OK = 0,
     ARDUINO_UNKNOWN_COMMAND = 1,

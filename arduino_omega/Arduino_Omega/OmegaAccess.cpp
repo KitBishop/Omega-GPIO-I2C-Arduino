@@ -5,15 +5,19 @@
 #include "OmegaAccess.h"
 #include "Wire.h"
 #include "OmegaAccessTypes.h"
+#include "OmegaCommandPort.h"
 
 unsigned char OmegaAccess::arduinoI2CAddr;
 int OmegaAccess::omegaSigPin;
-unsigned char OmegaAccess::sigPort;
-bool OmegaAccess::haveSigData;
-LinkData OmegaAccess::signalData;
-ResponseData OmegaAccess::signalResponse;
-unsigned char OmegaAccess::lastPortN;
-OmegaPort * OmegaAccess::ports[10];
+unsigned int OmegaAccess::sigPorts;
+unsigned int OmegaAccess::sigPortsPending;
+bool OmegaAccess::haveSignalled;
+
+OmegaCommandPort * OmegaAccess::commandPort = NULL;
+
+unsigned char OmegaAccess::readPortN;
+
+OmegaPort * OmegaAccess::ports[MAX_PORT + 1];
 
 void OmegaAccess::begin() {
     setup(DEFAULT_ARDUINO_DEV_ADDR, -1);
@@ -32,15 +36,21 @@ void OmegaAccess::setup(unsigned char i2cAddr, int sigPin) {
     omegaSigPin = sigPin;
 
     int i;
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i <= MAX_PORT; i++) {
         ports[i] = NULL;
     }
 
-    haveSigData = false;
+
     if (sigPin >= 0) {
         pinMode(sigPin, OUTPUT);
         digitalWrite(sigPin, LOW);
     }
+    
+    sigPorts = 0;
+    sigPortsPending = 0;
+    haveSignalled = false;
+    
+    commandPort = new OmegaCommandPort();
         
     // disable watchdog timer
     wdt_disable();
@@ -53,20 +63,37 @@ void OmegaAccess::setup(unsigned char i2cAddr, int sigPin) {
     Wire.onRequest(&onRequest);    
 }
 
-Arduino_Result OmegaAccess::signalOmega(unsigned char portN, LinkData sigData) {
+Arduino_Result OmegaAccess::signalOmega(unsigned char portN, LinkData linkData) {
     if (omegaSigPin < 0) {
         return ARDUINO_BAD_SIG;
     }
-    
-    if (haveSigData) {
-        return ARDUINO_SIG_PENDING;
+
+    OmegaPort * thePort;
+    if ((portN >= 0) && (portN <= MAX_PORT) && (ports[portN] != NULL)) {
+        return ARDUINO_BAD_SIG;
+    } else {
+        thePort = ports[portN];
     }
     
-    sigPort = portN;
-    signalData = sigData;
-    haveSigData = true;
-    
-    digitalWrite(omegaSigPin, HIGH);
+    if (haveSignalled) {
+        if ((sigPortsPending & (1 << portN)) != 0) {
+            return ARDUINO_SIG_PENDING;
+        } else {
+            sigPortsPending = sigPortsPending | (1 << portN);
+            thePort->setSigResponseData(linkData);
+        }
+    } else {
+        if ((sigPorts & (1 << portN)) != 0) {
+            return ARDUINO_SIG_PENDING;
+        }
+
+        sigPorts = sigPorts | (1 << portN);
+        thePort->setSigResponseData(linkData);
+        
+        haveSignalled = true;
+
+        digitalWrite(omegaSigPin, HIGH);
+    }
     
     return ARDUINO_OK;
 }
@@ -79,7 +106,7 @@ Arduino_Result OmegaAccess::registerPort(OmegaPort * omegaPort) {
     
     int portN = omegaPort->getPortNumber();
     
-    if ((portN < 0) || (portN > 9)) {
+    if ((portN < 0) || (portN > MAX_PORT)) {
         return ARDUINO_BAD_PORT;
     }
     
@@ -113,9 +140,12 @@ void OmegaAccess::onRequest() {
 }
 
 void OmegaAccess::handleReceived(LinkData linkDataIn) {
-    if (linkDataIn.size <= 1) {
+    if (linkDataIn.size < 1) {
+        // No data - nothing to do
         return;
     }
+
+    // Extract port and command
     unsigned char portN = linkDataIn.data[0];
     unsigned char cmd = linkDataIn.data[1];
     
@@ -125,12 +155,7 @@ void OmegaAccess::handleReceived(LinkData linkDataIn) {
         return;
     }
 
-    if ((portN == 0xc0) && (cmd == 0x1d)) {
-        // This is request for restart
-        restartArduino();
-        return;
-    }
-
+    // Extract the data for the command
     LinkData linkData;
     int i = 2;
     for (i = 2; i < linkDataIn.size; i++) {
@@ -138,78 +163,45 @@ void OmegaAccess::handleReceived(LinkData linkDataIn) {
     }
     linkData.size = linkDataIn.size - 2;
 
-    if ((portN >= 0) && (portN <= 9) && (ports[portN] != NULL)) {
-        lastPortN = portN;
+    if ((portN >= 0) && (portN <= MAX_PORT) && (ports[portN] != NULL)) {
+        // Standard port command - process it in the port recording response
         ports[portN]->setResponseData(ports[portN]->handleCommand(cmd, linkData));
-    } else if (portN == SIGNAL_PORT) {
-        lastPortN = SIGNAL_PORT;
-        signalResponse = handleSignalCommand(cmd, linkData);
+    } else if (portN == COMMAND_PORT) {
+        // System port command - process it here
+        if (cmd == ARDUINO_CMD_SETREADPORT) {
+            commandPort->setReadPort(linkData);
+        } else {
+            commandPort->setResponseData(commandPort->handleCommand(cmd, linkData));
+        }
+    } else {
+        // Unknown port - ignore
     }
 }
 
 void OmegaAccess::getResponseData(LinkData & linkData) {
     ResponseData respData;
-    if ((lastPortN >= 0) && (lastPortN <= 9) && (ports[lastPortN] != NULL)) {
-        ports[lastPortN]->getResponseData(respData);
-    } else if (lastPortN == SIGNAL_PORT) {
-        respData = signalResponse;
+    respData.size = 0;
+    OmegaPort * thePort = NULL;
+    
+    if ((readPortN >= 0) && (readPortN <= MAX_PORT) && (ports[readPortN] != NULL)) {
+        thePort = ports[readPortN];
+    } else if (readPortN == COMMAND_PORT) {
+        thePort = commandPort;
+    } 
+    
+    if (thePort != NULL) {
+        respData = thePort->getResponseData();
     } else {
+        // No response port available - respond with error
         respData.status = ARDUINO_BAD_PORT;
-        respData.data[0] = lastPortN;
-        respData.size = 1;
     }
+    
     int i;
     linkData.data[0] = respData.status;
     for (i = 0; i < respData.size; i++) {
         linkData.data[i + 1] = respData.data[i];
     }
     linkData.size = respData.size + 1;
-}
-
-ResponseData OmegaAccess::handleSignalCommand(unsigned char cmd, LinkData linkData) {
-    ResponseData sigResp;
-    sigResp.status = ARDUINO_OK;
-    sigResp.size = 0;
-
-    switch (cmd) {
-    case ARDUINO_SIG_GETSIGPORT:
-        if ((linkData.size != 0) || (omegaSigPin < 0) || !haveSigData) {
-            sigResp.status = ARDUINO_DATA_ERR;
-        } else {
-            sigResp.data[0] = sigPort;
-            sigResp.size = 1;
-        }
-        break;
-        
-    case ARDUINO_SIG_GETSIGSZ:
-        if ((linkData.size != 0) || (omegaSigPin < 0) || !haveSigData) {
-            sigResp.status = ARDUINO_DATA_ERR;
-        } else {
-            sigResp.data[0] = signalData.size;
-            sigResp.size = 1;
-        }
-        break;
-        
-    case ARDUINO_SIG_GETSIGDAT:
-        if ((linkData.size != 0) || (omegaSigPin < 0) || !haveSigData) {
-            sigResp.status = ARDUINO_DATA_ERR;
-        } else {
-            int i;
-            for (i = 0; i < signalData.size; i++) {
-                sigResp.data[i] = signalData.data[i];
-            }
-            sigResp.size = signalData.size;
-            digitalWrite(omegaSigPin, LOW);
-            haveSigData = false;
-        }
-        break;
-        
-    default:
-        sigResp.status = ARDUINO_UNKNOWN_COMMAND;
-        break;
-    }
-
-    return sigResp;
 }
 
 void OmegaAccess::resetArduino() {
@@ -219,8 +211,13 @@ void OmegaAccess::resetArduino() {
     }
 }
 
-void(* reStart) (void) = 0; //declare reset function @ address 0
-
-void OmegaAccess::restartArduino() {
-    reStart();
+void OmegaAccess::clearSignals() {
+    digitalWrite(omegaSigPin, LOW);
+    sigPorts = 0;
+    haveSignalled = false;
+    if (sigPortsPending != 0) {
+        sigPorts = sigPortsPending;
+        haveSignalled = true;
+        digitalWrite(omegaSigPin, HIGH);
+    }
 }
