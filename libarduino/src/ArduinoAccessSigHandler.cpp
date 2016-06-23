@@ -21,26 +21,34 @@ void ArduinoAccessSigHandler::handleIrq(int pinNum, GPIO_Irq_Type type) {
 
     if ((pinNum == accessInfo->signalPin->getPinNumber()) 
             && (type == GPIO_Irq_Type::GPIO_IRQ_RISING)) {
+        Arduino_Result aRes;
         SignalData sigData;
-        if (ArduinoAccess::getSignalData(arduinoDevAddr, sigData) == ARDUINO_OK) {
-            ArduinoPort * port;
-            auto portItem = accessInfo->ports.find(sigData.port);
-            if (portItem != accessInfo->ports.end()) {
-                port = portItem->second;
-            } else {
-                return;
-            }
-            
-            if (port == NULL) {
-                return;
-            }
-            
-            if (port->sigHandler != NULL) {
-                port->sigHandler(arduinoDevAddr, sigData.port, sigData.linkData);
-            } else if (port->sigHandlerObj != NULL) {
-                port->sigHandlerObj->handleSignalData(arduinoDevAddr, sigData.port, sigData.linkData);
+        ArduinoPort * port;
+        unsigned int sigPorts;
+        aRes = ArduinoAccess::getSigPorts(arduinoDevAddr, sigPorts);
+        if ((aRes == ARDUINO_OK) && (sigPorts != 0)) {
+            int portN;
+            for (portN = 0; portN <= MAX_PORT; portN++) {
+                if ((sigPorts & (1 << portN)) != 0) {
+                    auto portItem = accessInfo->ports.find(portN);
+                    if (portItem != accessInfo->ports.end()) {
+                        port = portItem->second;
+                        
+                        if (port != NULL) {
+                            aRes = ArduinoAccess::getSignalDataInternal(arduinoDevAddr, portN, sigData);
+                            if (aRes == ARDUINO_OK) {
+                                if (port->sigHandler != NULL) {
+                                    port->sigHandler(arduinoDevAddr, sigData.port, sigData.linkData);
+                                } else if (port->sigHandlerObj != NULL) {
+                                    port->sigHandlerObj->handleSignalData(arduinoDevAddr, sigData.port, sigData.linkData);
+                                }
+                            }
+                        }
+                    }                    
+                }
             }
         }
+        ArduinoAccess::clearSignal(arduinoDevAddr);
     }
 }
 

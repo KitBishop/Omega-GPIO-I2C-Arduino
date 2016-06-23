@@ -78,7 +78,7 @@ Arduino_Result ArduinoPort::setSignalHandler(int pin, Arduino_Sig_Handler_Func h
     sigHandler = handler;
     sigHandlerObj = NULL;
     
-    Arduino_Result res = ArduinoAccess::setSignalHandler(this, pin);
+    Arduino_Result res = ArduinoAccess::setSignalHandlerInternal(this, pin);
     if (res != ARDUINO_OK) {
         sigHandler = NULL;
         sigHandlerObj = NULL;
@@ -91,7 +91,7 @@ Arduino_Result ArduinoPort::setSignalHandler(int pin, Arduino_Sig_Handler_Object
     sigHandler = NULL;
     sigHandlerObj = handlerObj;
     
-    Arduino_Result res = ArduinoAccess::setSignalHandler(this, pin);
+    Arduino_Result res = ArduinoAccess::setSignalHandlerInternal(this, pin);
     if (res != ARDUINO_OK) {
         sigHandler = NULL;
         sigHandlerObj = NULL;
