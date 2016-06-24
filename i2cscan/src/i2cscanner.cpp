@@ -9,12 +9,9 @@ using namespace std;
 
 void usage(char * nm) {
     printf("Usage\n");
-    printf("Commands - one of:\n");
-
+    printf("Command:\n");
     printf("\t%s <i2c-chan>\n",nm);
-    printf("\t\tScan for I2C devices on channel <i2c-chan> (0-3) - default is 0\n");
-    printf("\t%s help\n",nm);
-    printf("\t\tDisplays this help information\n");
+    printf("\t\tScan for all I2C devices with addresses from 0x03 to 0x7f\n");
 }
 
 bool processArgs(int argc, char** argv) {
@@ -42,7 +39,7 @@ int main(int argc, char** argv) {
     int i;
     int j;
     int first = 0x03;
-    int last = 0x77;
+    int last = 0x7f;
     I2C_Result r;
     
     printf("Scanning I2C\n");
