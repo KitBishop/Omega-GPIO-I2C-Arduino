@@ -55,13 +55,15 @@ int main(int argc, char** argv) {
     
     if (!isok) {
         cerr << endl;
-        cerr << Option::progInfoHelp();
-        cerr << "Help is available by using one of:" << endl;
-        cerr << "\t" << appInfo->appName << " -?  - for basic usage"  << endl;
+        cerr << Option::progInfoHelp(appInfo, "Brief Usage", false);
+        cerr << "\nHelp is available by using one of:" << endl;
+        cerr << "\t" << appInfo->appName << " -?  - for basic help"  << endl;
+        cerr << "\t" << appInfo->appName << " -u  - for brief usage"  << endl;
         cerr << "\t" << appInfo->appName << " -h  - for full help"  << endl;
         if (appInfo->errOpType != opInvalid) {
             cerr << "\t" << appInfo->appName << " -h:" << Operation::mapFromOpType(appInfo->errOpType) << "  - for help on failed operation" << endl;
         }
+        cerr << "\n" << Option::sourcesHelp() << endl;
         exitResult = -1;
     }
     

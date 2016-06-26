@@ -6,6 +6,7 @@
 
 #include "GPIOTypes.h"
 #include "I2CTypes.h"
+#include "ArduinoAccessTypes.h"
 
 using namespace std;
 
@@ -31,5 +32,6 @@ std::string replaceString(std::string subject, const std::string& search,
 
 string i2cResultStr(I2C_Result r);
 string gpioResultStr(GPIO_Result r);
+string arduinoResultStr(Arduino_Result r);
 
 #endif 

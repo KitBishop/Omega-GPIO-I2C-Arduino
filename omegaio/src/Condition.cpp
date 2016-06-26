@@ -11,7 +11,7 @@ Condition::Condition() {
 }
 
 string Condition::toString() {
-    string s = "Condition: Expression:'" + condExpr + "'";
+    string s = "Condition:'" + condExpr + "'";
     return s;
 }
 

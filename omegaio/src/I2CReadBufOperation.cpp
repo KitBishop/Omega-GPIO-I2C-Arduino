@@ -31,7 +31,7 @@ bool I2CReadBufOperation::build(AppInfo * appInfo, list<string> * &paramList, li
             return false;
         }
         
-        maxBytesExpr = I2CRegExpression::create(opType, **paramIter, appInfo, true);
+        maxBytesExpr = Expression::create(opType, **paramIter, appInfo);
 
         if (maxBytesExpr == NULL) {
             return false;

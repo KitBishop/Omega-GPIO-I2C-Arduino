@@ -1,5 +1,5 @@
-#ifndef Types_H
-#define Types_H
+#ifndef OmegaIOTypes_H
+#define OmegaIOTypes_H
 
 enum NodeType {
     nodeTypeOption,
@@ -40,12 +40,42 @@ enum OperationType {
     opI2CWrite32,
     opI2CWriteBuf,
 
+// Arduino operations
+    opArduinoSystem,
+    opASReboot,    
+    opASRetries,    
+    opASPinMode,
+    opASDigitalRead,
+    opASDigitalWrite,
+    opASAnalogRef,
+    opASAnalogRead,
+    opASAnalogWrite,
+    opASTone,
+    opASNoTone,
+    opASShiftIn,
+    opASShiftOut,
+    opASPulseIn,
+    opArduinoPort,
+    opAPReboot,    
+    opAPRetries, 
+    opAPSendCommand,
+    opAPSend8,
+    opAPSend16,
+    opAPSend32,
+    opAPSendBuf,
+    opAPGetStatus,
+    opAPGet8,
+    opAPGet16,
+    opAPGet32,
+    opAPGetBuf,
+            
 // Flow control operations
     opWhile,
     opEndWhile,
     opIf, 
     opElse,
     opEndIf,
+    opContinue,
     opBreak,
     opExit,
 
@@ -67,6 +97,8 @@ enum OperationType {
 #define opGPIOLast  opExpledStop
 #define opI2CFirst  opI2CProbe
 #define opI2CLast   opI2CWriteBuf
+#define opArduinoFirst  opArduinoSystem
+#define opArduinoLast   opAPGetBuf
 #define opFlowFirst opWhile
 #define opFlowLast  opExit
 #define opFileFirst opFileIn

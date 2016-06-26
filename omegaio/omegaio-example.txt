@@ -75,7 +75,7 @@ while $0
 endwhile
 
 # Report on reason that main loop ended
-if $[stop.txt]
+if "stopval == 99"
     exec "echo"
     exec "echo Processing ended by existence of \'stop.txt\' starting with line with value 99"
 else  

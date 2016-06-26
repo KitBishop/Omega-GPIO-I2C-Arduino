@@ -8,17 +8,31 @@ bool Processing::processFileParameter(AppInfo * appInfo, list<string> * &paramLi
     ifstream paramFile;
     int lineNum = 0;
     bool res = true;
+    bool useCin;
+    bool atEof;
 
-    paramFile.open(fileName);
-
-    if (!paramFile.is_open()) {
-        prterr("Unable to open parameter file:" + fileName + '\n');
-        return false;
+    useCin = fileName.compare("-") == 0;
+    
+    if (!useCin) {
+        paramFile.open(fileName);
+        if (!paramFile.is_open()) {
+            prterr("Unable to open parameter file:" + fileName + '\n');
+            return false;
+        }
     }
-
-    while (!paramFile.eof()) {
+    
+    if (useCin) {
+        atEof = cin.eof();
+    } else {
+        atEof = paramFile.eof();
+    }
+    while (!atEof) {
         string aLine;
-        getline(paramFile, aLine);
+        if (useCin) {
+            getline(cin, aLine);
+        } else {
+            getline(paramFile, aLine);
+        }
         aLine = trim(aLine);
         lineNum++;
         if ((aLine.length() > 0) && (aLine.front() != '#')) {
@@ -59,9 +73,16 @@ bool Processing::processFileParameter(AppInfo * appInfo, list<string> * &paramLi
                 }
             }
         }
+        if (useCin) {
+            atEof = cin.eof();
+        } else {
+            atEof = paramFile.eof();
+        }
     }
 
-    paramFile.close();
+    if (!useCin) {
+        paramFile.close();
+    }
 
     return res;
 }

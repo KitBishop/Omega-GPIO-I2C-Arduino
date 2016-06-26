@@ -728,10 +728,13 @@ string Expression::help() {
     hStr << "\n\t  - $n or $nn = current value of pin n or nn";
     hStr << "\n\t  - $! = value of latest result set by earlier operations";
     hStr << "\n\t    The operations that set the result are:";
-    hStr << "\n\t      read      get-direction pulsein   shiftin   frequency";
-    hStr << "\n\t      filein    filedelete";
-    hStr << "\n\t      i2cprobe  i2cread8      i2cread16 i2cread32";
-    hStr << "\n\t      exec      assign";
+    hStr << "\n\t      read          get-direction pulsein   shiftin   frequency";
+    hStr << "\n\t      filein        filedelete";
+    hStr << "\n\t      i2cprobe      i2cread8      i2cread16 i2cread32";
+    hStr << "\n\t      asdigitalread asanalogread  asshiftin aspulsein";
+    hStr << "\n\t      apgetstatus   apget8        apget16   apget32";
+    hStr << "\n\t      exec          assign";
+    
     hStr << "\n\t  - $? = status of last executed operation: 0=error, 1=ok";
     hStr << "\n\t  - $[<file-name>] = file <file-name> exists; 0=no, 1=yes";
 

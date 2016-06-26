@@ -7,6 +7,27 @@
 #include "GetDirectionOperation.h"
 #include "PwmOperation.h"
 #include "PwmStopOperation.h"
+#include "ArduinoSystemOperation.h"
+#include "ASRebootOperation.h"
+#include "ASRetriesOperation.h"
+#include "ASPinModeOperation.h"
+#include "ASDigitalReadOperation.h"
+#include "ASDigitalWriteOperation.h"
+#include "ASAnalogRefOperation.h"
+#include "ASAnalogReadOperation.h"
+#include "ASAnalogWriteOperation.h"
+#include "ASToneOperation.h"
+#include "ASNoToneOperation.h"
+#include "ASShiftInOperation.h"
+#include "ASShiftOutOperation.h"
+#include "ASPulseInOperation.h"
+#include "ArduinoPortOperation.h"
+#include "APRebootOperation.h"
+#include "APRetriesOperation.h"
+#include "APSendOperation.h"
+#include "APSendBufOperation.h"
+#include "APGetOperation.h"
+#include "APGetBufOperation.h"
 #include "IrqOperation.h"
 #include "Irq2Operation.h"
 #include "IrqStopOperation.h"
@@ -27,6 +48,7 @@
 #include "ExecOperation.h"
 #include "WhileOperation.h"
 #include "IfOperation.h"
+#include "ContinueOperation.h"
 #include "BreakOperation.h"
 #include "ExitOperation.h"
 #include "I2CProbeOperation.h"
@@ -78,12 +100,42 @@ map<string, OperationType> Operation::opTypeMap = {
     {"i2cwrite32", opI2CWrite32},
     {"i2cwritebuf", opI2CWriteBuf},
 
+// Arduino operations
+    {"arduinosys", opArduinoSystem},
+    {"asreboot", opASReboot},    
+    {"asretries", opASRetries},    
+    {"aspinmode", opASPinMode},
+    {"asdigitalread", opASDigitalRead},
+    {"asdigitalwrite", opASDigitalWrite},
+    {"asanalogref", opASAnalogRef},
+    {"asanalogread", opASAnalogRead},
+    {"asanalogwrite", opASAnalogWrite},
+    {"astone", opASTone},
+    {"asnotone", opASNoTone},
+    {"asshiftout", opASShiftOut},
+    {"asshiftin", opASShiftIn},
+    {"aspulsein", opASPulseIn},
+    {"arduinoport", opArduinoPort},
+    {"apreboot", opAPReboot},
+    {"apretries", opAPRetries},
+    {"apsendcmd", opAPSendCommand},
+    {"apsend8", opAPSend8},
+    {"apsend16", opAPSend16},
+    {"apsend32", opAPSend32},
+    {"apsendbuf", opAPSendBuf},
+    {"apgetstatus", opAPGetStatus},
+    {"apget8", opAPGet8},
+    {"apget16", opAPGet16},
+    {"apget32", opAPGet32},
+    {"apgetbuf", opAPGetBuf},
+    
 // Flow control operations
     {"while", opWhile},
     {"endwhile", opEndWhile},
     {"if", opIf},
     {"else", opElse},
     {"endif", opEndIf},
+    {"continue", opContinue},
     {"break", opBreak},
     {"exit", opExit},
 
@@ -226,12 +278,124 @@ Operation * Operation::create(AppInfo * appInfo, OperationType ot, list<string> 
             theOp = new ExecOperation();
             break;
 
+        case opArduinoSystem:
+            theOp = new ArduinoSystemOperation();
+            break;
+
+        case opASReboot:
+            theOp = new ASRebootOperation();
+            break;
+
+        case opASRetries:
+            theOp = new ASRetriesOperation();
+            break;
+
+        case opASPinMode:
+            theOp = new ASPinModeOperation();
+            break;
+
+        case opASDigitalRead:
+            theOp = new ASDigitalReadOperation();
+            break;
+
+        case opASDigitalWrite:
+            theOp = new ASDigitalWriteOperation();
+            break;
+
+        case opASAnalogRef:
+            theOp = new ASAnalogRefOperation();
+            break;
+
+        case opASAnalogRead:
+            theOp = new ASAnalogReadOperation();
+            break;
+
+        case opASAnalogWrite:
+            theOp = new ASAnalogWriteOperation();
+            break;
+
+        case opASTone:
+            theOp = new ASToneOperation();
+            break;
+
+        case opASNoTone:
+            theOp = new ASNoToneOperation();
+            break;
+
+        case opASShiftIn:
+            theOp = new ASShiftInOperation();
+            break;
+
+        case opASShiftOut:
+            theOp = new ASShiftOutOperation();
+            break;
+
+        case opASPulseIn:
+            theOp = new ASPulseInOperation();
+            break;
+
+        case opArduinoPort:
+            theOp = new ArduinoPortOperation();
+            break;
+
+        case opAPReboot:
+            theOp = new APRebootOperation();
+            break;
+
+        case opAPRetries:
+            theOp = new APRetriesOperation();
+            break;
+
+        case opAPSendCommand:
+            theOp = new APSendOperation(0);
+            break;
+
+        case opAPSend8:
+            theOp = new APSendOperation(8);
+            break;
+
+        case opAPSend16:
+            theOp = new APSendOperation(16);
+            break;
+
+        case opAPSend32:
+            theOp = new APSendOperation(32);
+            break;
+
+        case opAPSendBuf:
+            theOp = new APSendBufOperation();
+            break;
+
+        case opAPGetStatus:
+            theOp = new APGetOperation(0);
+            break;
+
+        case opAPGet8:
+            theOp = new APGetOperation(8);
+            break;
+
+        case opAPGet16:
+            theOp = new APGetOperation(16);
+            break;
+
+        case opAPGet32:
+            theOp = new APGetOperation(32);
+            break;
+
+        case opAPGetBuf:
+            theOp = new APGetBufOperation();
+            break;
+
         case opWhile:
             theOp = new WhileOperation();
             break;
 
         case opIf:
             theOp = new IfOperation();
+            break;
+
+        case opContinue:
+            theOp = new ContinueOperation();
             break;
 
         case opBreak:

@@ -15,6 +15,8 @@ AppInfo::AppInfo() {
     hexout = false;  // -x -> true = output in hex.  Default is false
     
     breaking = false;
+    continuing = false;
+    
     debug = false;
     
     haveOp = false;
@@ -25,6 +27,9 @@ AppInfo::AppInfo() {
     
     varMap = map<string, long int>();
     i2cDevices = map<int, I2CDevice *>();
+    
+    arduinoSystem = NULL;
+    arduinoPort = NULL;
 
 }
 
@@ -190,4 +195,31 @@ long int AppInfo::fileExists(string fnm) {
     } else {
         return 0;
     }
+}
+
+void AppInfo::setArduinoSystem(int addr, int port) {
+    if (arduinoSystem != NULL) {
+        delete arduinoSystem;
+    }
+    
+    arduinoSystem = new ArduinoSystem(addr, port);
+}
+
+ArduinoSystem * AppInfo::getArduinoSystem() {
+    if (arduinoSystem == NULL) {
+        arduinoSystem = new ArduinoSystem(0x08, 0);
+    }
+    return arduinoSystem;
+}
+
+void AppInfo::setArduinoPort(int addr, int port) {
+    if (arduinoPort != NULL) {
+        delete arduinoPort;
+    }
+    
+    arduinoPort = new ArduinoPort(addr, port);
+}
+
+ArduinoPort * AppInfo::getArduinoPort() {
+    return arduinoPort;
 }

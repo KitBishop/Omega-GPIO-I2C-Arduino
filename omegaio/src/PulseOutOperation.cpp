@@ -76,7 +76,7 @@ bool PulseOutOperation::execute(AppInfo * appInfo) {
         return false;
     }
     if (pulseLenUS <= 0) {
-        appInfo->prtError(opType, "Invalid pulse length for '" + mapFromOpType(opType) + "':" + pulseLenExpr->getExpressionString() + "->" + to_string(pulseLenExpr));
+        appInfo->prtError(opType, "Invalid pulse length for '" + mapFromOpType(opType) + "':" + pulseLenExpr->getExpressionString() + "->" + to_string(pulseLenUS));
         return false;
     }
 
@@ -102,7 +102,7 @@ string PulseOutOperation::help() {
     hStr << "\n\tOutputs a single pulse to given pin with supplied data";
     hStr << "\n\t<pin-expr> is an expression that must evaluate to one of:";
     hStr << "\n\t\t0,1,6,7,8,12,13,14,15,16,17,18,19,23,26";
-    hStr << "\n\t<duration-expr> is and expression that evaluates to the";
+    hStr << "\n\t<duration-expr> is an expression that evaluates to the";
     hStr << "\n\tlength of pulse in micro-seconds. Must be >0";
     hStr << "\n\t<level-expr> is an expression that evaluates to the pulse level.";
     hStr << "\n\tA nonzero value represents a level of 1";

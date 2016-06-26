@@ -114,7 +114,6 @@ bool I2CReadOperation::execute(AppInfo * appInfo) {
         appInfo->prtError(opType, "I2C read failed(" + i2cResultStr(i2cRes) + ")");
     } else {
         appInfo->prtOutput(val);
-//        appInfo->prtOutput(to_string(val));
         appInfo->result = val;
     }
 

@@ -8,6 +8,27 @@
 #include "GetDirectionOperation.h"
 #include "PwmOperation.h"
 #include "PwmStopOperation.h"
+#include "ArduinoSystemOperation.h"
+#include "ASRebootOperation.h"
+#include "ASRetriesOperation.h"
+#include "ASPinModeOperation.h"
+#include "ASDigitalReadOperation.h"
+#include "ASDigitalWriteOperation.h"
+#include "ASAnalogRefOperation.h"
+#include "ASAnalogReadOperation.h"
+#include "ASAnalogWriteOperation.h"
+#include "ASToneOperation.h"
+#include "ASNoToneOperation.h"
+#include "ASShiftInOperation.h"
+#include "ASShiftOutOperation.h"
+#include "ASPulseInOperation.h"
+#include "ArduinoPortOperation.h"
+#include "APRebootOperation.h"
+#include "APRetriesOperation.h"
+#include "APSendOperation.h"
+#include "APSendBufOperation.h"
+#include "APGetOperation.h"
+#include "APGetBufOperation.h"
 #include "IrqOperation.h"
 #include "Irq2Operation.h"
 #include "IrqStopOperation.h"
@@ -28,6 +49,7 @@
 #include "ExecOperation.h"
 #include "WhileOperation.h"
 #include "IfOperation.h"
+#include "ContinueOperation.h"
 #include "BreakOperation.h"
 #include "ExitOperation.h"
 #include "I2CProbeOperation.h"
@@ -100,6 +122,7 @@ Option * Option::create(AppInfo * appInfo, string optStr) {
                 break;
 
             case '?':
+            case 'u':
                 appInfo->haveOp = true;
                 if (optStr.length() == 2) {
                     oper = on;
@@ -133,6 +156,7 @@ Option * Option::create(AppInfo * appInfo, string optStr) {
                                     case 'x':
                                     case 'd':
                                     case 'h':
+                                    case 'u':
                                     case '?':
                                         break;
 
@@ -219,6 +243,22 @@ bool Option::execute(AppInfo * appInfo) {
 
         case '?':
         {
+            string bStr = progInfoHelp(appInfo, "Brief Usage", false);
+            bStr = bStr + "\nHelp is available by using one of:";
+            bStr = bStr + "\n\t" + appInfo->appName + " -?  - for basic help";
+            bStr = bStr + "\n\t" + appInfo->appName + " -u  - for brief usage";
+            bStr = bStr + "\n\t" + appInfo->appName + " -h  - for full help\n";
+            bStr = bStr + "\n" + sourcesHelp();
+            
+            bool apbRep = appInfo->report;
+            appInfo->report = true;
+            appInfo->prtReport(bStr);
+            appInfo->report = apbRep;
+        }
+            break;
+
+        case 'u':
+        {
             string bStr = basicHelp(appInfo);
             bool apbRep = appInfo->report;
             appInfo->report = true;
@@ -234,10 +274,7 @@ bool Option::execute(AppInfo * appInfo) {
 
             stringstream hStr;
             if ((optParam == NULL) || optParam->empty() || (optParam->compare("all") == 0)) {
-                hStr << progInfoHelp();
-                hStr << "\nUsage:\n";
-                hStr << "======\n    " << appInfo->appName << " [any length sequence of space separated <input-element>s]";
-                hStr << "\nAn <input-element> is one of:\n\t<option>\n\t<file-input>\n\t<operation>\n\n";
+                hStr << progInfoHelp(appInfo, "Usage", true);
                 stringstream optHstr;
                 optHstr << optionHelp('v') << '\n'
                         << optionHelp('q') << '\n'
@@ -249,6 +286,7 @@ bool Option::execute(AppInfo * appInfo) {
                         << optionHelp('x') << '\n'
                         << optionHelp('d') << '\n'
                         << optionHelp('h') << '\n'
+                        << optionHelp('u') << '\n'
                         << optionHelp('?');
                 string s = optHstr.str();
                 replaceStringInPlace(s, "\n", "\n\t");
@@ -266,6 +304,7 @@ bool Option::execute(AppInfo * appInfo) {
                 
                 opHstr << "\n    " << fullHelpBlock("GPIO Operations:", opGPIOFirst, opGPIOLast);
                 opHstr << "\n\n    " << fullHelpBlock("I2C Operations:", opI2CFirst, opI2CLast);
+                opHstr << "\n\n    " << fullHelpBlock("Arduino Operations:", opArduinoFirst, opArduinoLast);
                 opHstr << "\n\n    " << fullHelpBlock("Flow Control Operations:", opFlowFirst, opFlowLast);
                 opHstr << "\n\n    " << fullHelpBlock("File Operations:", opFileFirst, opFileLast);
                 opHstr << "\n\n    " << fullHelpBlock("Miscellaneous Operations:", opMiscFirst, opMiscLast);
@@ -293,6 +332,7 @@ bool Option::execute(AppInfo * appInfo) {
                     case 's':
                     case 'h':
                     case 'd':
+                    case 'u':
                     case '?':
                         hStr << optionHelp(hC);
                         break;
@@ -338,11 +378,39 @@ bool Option::execute(AppInfo * appInfo) {
                     case opFileOut:
                     case opFileDelete:
                     case opExec:
+                    case opArduinoSystem:
+                    case opASReboot:
+                    case opASRetries:
+                    case opASPinMode:
+                    case opASDigitalRead:
+                    case opASDigitalWrite:
+                    case opASAnalogRef:
+                    case opASAnalogRead:
+                    case opASAnalogWrite:
+                    case opASTone:
+                    case opASNoTone:
+                    case opASShiftIn:
+                    case opASShiftOut:
+                    case opASPulseIn:
+                    case opArduinoPort:
+                    case opAPReboot:
+                    case opAPRetries:
+                    case opAPSendCommand:
+                    case opAPSend8:
+                    case opAPSend16:
+                    case opAPSend32:
+                    case opAPSendBuf:
+                    case opAPGetStatus:
+                    case opAPGet8:
+                    case opAPGet16:
+                    case opAPGet32:
+                    case opAPGetBuf:
                     case opWhile:
                     case opEndWhile:
                     case opIf:
                     case opElse:
                     case opEndIf:
+                    case opContinue:
                     case opBreak:
                     case opExit:
                     case opI2CProbe:
@@ -478,6 +546,96 @@ string Option::operationHelp(OperationType opType) {
             hStr = ExecOperation::help();
             break;
 
+        case opArduinoSystem:
+            hStr = ArduinoSystemOperation::help();
+            break;
+            
+        case opASReboot:
+            hStr = ASRebootOperation::help();
+            break;
+            
+        case opASRetries:
+            hStr = ASRetriesOperation::help();
+            break;
+            
+        case opASPinMode:
+            hStr = ASPinModeOperation::help();
+            break;
+            
+        case opASDigitalRead:
+            hStr = ASDigitalReadOperation::help();
+            break;
+            
+        case opASDigitalWrite:
+            hStr = ASDigitalWriteOperation::help();
+            break;
+            
+        case opASAnalogRef:
+            hStr = ASAnalogRefOperation::help();
+            break;
+            
+        case opASAnalogRead:
+            hStr = ASAnalogReadOperation::help();
+            break;
+            
+        case opASAnalogWrite:
+            hStr = ASAnalogWriteOperation::help();
+            break;
+            
+        case opASTone:
+            hStr = ASToneOperation::help();
+            break;
+            
+        case opASNoTone:
+            hStr = ASNoToneOperation::help();
+            break;
+            
+        case opASShiftIn:
+            hStr = ASShiftInOperation::help();
+            break;
+            
+        case opASShiftOut:
+            hStr = ASShiftOutOperation::help();
+            break;
+            
+        case opASPulseIn:
+            hStr = ASPulseInOperation::help();
+            break;
+            
+        case opArduinoPort:
+            hStr = ArduinoPortOperation::help();
+            break;
+            
+        case opAPReboot:
+            hStr = APRebootOperation::help();
+            break;
+            
+        case opAPRetries:
+            hStr = APRetriesOperation::help();
+            break;
+            
+        case opAPSendCommand:
+        case opAPSend8:
+        case opAPSend16:
+        case opAPSend32:
+            hStr = APSendOperation::help();
+            break;
+
+        case opAPSendBuf:
+            hStr = APSendBufOperation::help();
+            break;
+
+        case opAPGetStatus:
+        case opAPGet8:
+        case opAPGet16:
+        case opAPGet32:
+            hStr = APGetOperation::help();
+            break;
+
+        case opAPGetBuf:
+            hStr = APGetBufOperation::help();
+            break;
+
         case opWhile:
         case opEndWhile:
             hStr = WhileOperation::help();
@@ -487,6 +645,10 @@ string Option::operationHelp(OperationType opType) {
         case opElse:
         case opEndIf:
             hStr = IfOperation::help();
+            break;
+
+        case opContinue:
+            hStr = ContinueOperation::help();
             break;
 
         case opBreak:
@@ -594,7 +756,11 @@ string Option::optionHelp(char optC) {
             break;
 
         case '?':
-            hStr << "-? - displays basic usage help";
+            hStr << "-? - displays basic help";
+            break;
+
+        case 'u':
+            hStr << "-u - displays brief usage help";
             break;
     }
 
@@ -615,7 +781,13 @@ string Option::fullHelpBlock(string head, OperationType op1, OperationType op2) 
                 && (op != opI2CRead16)
                 && (op != opI2CRead32)
                 && (op != opI2CWrite16)
-                && (op != opI2CWrite32)) {
+                && (op != opI2CWrite32)
+                && (op != opAPSend8)
+                && (op != opAPSend16)
+                && (op != opAPSend32)
+                && (op != opAPGet8)
+                && (op != opAPGet16)
+                && (op != opAPGet32)) {
             hStr << replaceString("\n" + operationHelp(op), "\n", "\n\t");
         }
     }
@@ -652,10 +824,7 @@ string Option::basicHelpBlock(string head, OperationType op1, OperationType op2)
 
 string Option::basicHelp(AppInfo * appInfo) {
     stringstream hStr;
-    hStr << progInfoHelp();
-    hStr << "\nBasic Usage:\n";
-    hStr << "============\n    " << appInfo->appName << " [any length sequence of space separated <input-element>s]\n";
-    hStr << "An <input-element> is one of:\n\t<option>\n\t<file-input>\n\t<operation>\n";
+    hStr << progInfoHelp(appInfo, "Basic Usage", true);
     hStr << "An <option> is one of:\n";
     hStr << "\t-v - verbose output\n";
     hStr << "\t-q - quiet output\n";
@@ -665,8 +834,10 @@ string Option::basicHelp(AppInfo * appInfo) {
     hStr << "\t-e - error output\n";
     hStr << "\t-s - automatic setting of pin direction\n";
     hStr << "\t-x - hex output\n";
+    hStr << "\t-d - output debugging information after parse complete\n";
     hStr << "\t-h - various levels of help output\n";
-    hStr << "\t-? - this basic usage output\n";
+    hStr << "\t-u - brief usage help output\n";
+    hStr << "\t-? - basic help output\n";
     hStr << "A <file-input> is of the form:\n";
     hStr << "\t@<file-name> - input commands from file\n";
     hStr << "An <operation> is of the form:\n";
@@ -675,6 +846,7 @@ string Option::basicHelp(AppInfo * appInfo) {
 
     hStr << basicHelpBlock("GPIO Operations:", opGPIOFirst, opGPIOLast);
     hStr << basicHelpBlock("I2C Operations:", opI2CFirst, opI2CLast);
+    hStr << basicHelpBlock("Arduino Operations:", opArduinoFirst, opArduinoLast);
     hStr << basicHelpBlock("Flow Control Operations:", opFlowFirst, opFlowLast);
     hStr << basicHelpBlock("File Operations:", opFileFirst, opFileLast);
     hStr << basicHelpBlock("Miscellaneous Operations:", opMiscFirst, opMiscLast);
@@ -697,21 +869,44 @@ string Option::atHelp() {
     ss << "\n\tInput is free form sequence of space separated standard";
     ss << "\n\t\tinput elements: <option> <file-input> <operation>";
     ss << "\n\tAny line with first non-blank character of # is ignored";
+    ss << "\n\tNOTES:";
+    ss << "\n\t1. Input is taken from the file at parse time prior to execution";
+    ss << "\n\t2. In general, use of @<file-name> can be nested but not";
+    ss << "\n\t   recursively. I.E. the same file can NOT be referred to in";
+    ss << "\n\t    another file either directly or indirectly.";
+    ss << "\n\t3. If <file-name> is '-', then uses standard input";
+    ss << "\n\t4. Input from standard input can only be used once and then only";
+    ss << "\n\t   on the command line, NOT from within another file";
+    ss << "\n\t5. Input from standard input is terminated by Ctrl-D at the";
+    ss << "\n\t   start of a new input line.";
+            
     return ss.str();
 }
 
-string Option::progInfoHelp() {
+string Option::progInfoHelp(AppInfo * appInfo, string head, bool withVersion) {
     stringstream hStr;
-    hStr << "A C++ program to control and interact with Omega GPIO pins,";
-    hStr << "\n    I2C devices, and Arduino access via scripted operations.";
-    hStr << "\n\tProgram version:         " << applicationVersion;
-    hStr << "\n\tGPIO Library version:    " << GPIOAccess::getLibVersion();
-    hStr << "\n\tI2C Library version:     " << I2CAccess::getLibVersion();
-    hStr << "\n\tArduino Library version: " << ArduinoAccess::getLibVersion() << "\n";
+    if (withVersion) {
+        hStr << "A C++ program to control and interact with Omega GPIO pins,";
+        hStr << "\n    I2C devices, and Arduino access via scripted operations.";
+        hStr << "\n\tProgram version:         " << applicationVersion;
+        hStr << "\n\tGPIO Library version:    " << GPIOAccess::getLibVersion();
+        hStr << "\n\tI2C Library version:     " << I2CAccess::getLibVersion();
+        hStr << "\n\tArduino Library version: " << ArduinoAccess::getLibVersion() << "\n";
+    } else {
+        hStr << "Control of GPIO, I2C devices and Arduino access";
+    }
+    hStr << "\n" << head << ":";
+    hStr << "\n";
+    int i;
+    for (i = 0; i < head.length(); i++) {
+        hStr << "=";
+    }
+    hStr << "\n" << appInfo->appName << " [any length sequence of space separated <input-element>s]";
+    hStr << "\nAn <input-element> is one of:\n\t<option>\n\t<file-input>\n\t<operation>\n";
     return hStr.str();
 }
 
 string Option::sourcesHelp() {
-    string hStr = "Sources available at: https://github.com/KitBishop/Omega-IO\n";
+    string hStr = "Sources available at: https://github.com/KitBishop/Omega-GPIO-I2C-Arduino\n";
     return hStr;
 }

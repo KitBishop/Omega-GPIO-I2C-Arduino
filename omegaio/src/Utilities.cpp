@@ -108,3 +108,42 @@ string gpioResultStr(GPIO_Result r) {
     
     return "GPIO unknown";
 }
+
+string arduinoResultStr(Arduino_Result r) {
+    switch (r) {
+        case ARDUINO_OK:
+            return "ARDUINO_OK";
+            
+        case ARDUINO_UNKNOWN_COMMAND:
+            return "ARDUINO_UNKNOWN_COMMAND";
+            
+        case ARDUINO_DATA_ERR:
+            return "ARDUINO_DATA_ERR";
+            
+        case ARDUINO_I2C_ERR:
+            return "ARDUINO_I2C_ERR";
+            
+        case ARDUINO_BAD_PIN:
+            return "ARDUINO_BAD_PIN";
+            
+        case ARDUINO_BAD_PORT:
+            return "ARDUINO_BAD_PORT";
+            
+        case ARDUINO_SIG_PENDING:
+            return "ARDUINO_SIG_PENDING";
+            
+        case ARDUINO_BAD_SIG:
+            return "ARDUINO_BAD_SIG";
+            
+        case ARDUINO_BAD_READ_LEN:
+            return "ARDUINO_BAD_READ_LEN";
+            
+        case ARDUINO_NO_LINK:
+            return "ARDUINO_NO_LINK";
+            
+        case ARDUINO_TIMEOUT:
+            return "ARDUINO_TIMEOUT";
+    }
+            
+    return "ARDUINO unknown";
+}

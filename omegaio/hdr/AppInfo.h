@@ -4,12 +4,14 @@
 #include <string>
 #include <map>
 
-#include "Types.h"
+#include "OmegaIOTypes.h"
 #include "I2CDevice.h"
+#include "ArduinoSystem.h"
 
 using namespace std;
 
 #define applicationVersion  "1.0.0"
+#define MAX_ARDUINO_PORT 15
 
 class AppInfo {
 public:
@@ -34,6 +36,8 @@ public:
     bool hexout;   // -x -> true = output in hex.  Default is false
     
     bool breaking;
+    bool continuing;
+    
     bool debug;
     
     bool haveOp;
@@ -57,6 +61,16 @@ public:
     void setVar(string s, long int v);
     string replaceVars(string s);
     long int fileExists(string fnm);
+    
+    void setArduinoSystem(int addr, int port);    
+    ArduinoSystem * getArduinoSystem();
+    
+    ArduinoSystem * arduinoSystem;
+    
+    void setArduinoPort(int addr, int port);    
+    ArduinoPort * getArduinoPort();
+    
+    ArduinoPort * arduinoPort;
 };
 
 #endif /* APPINFO_H */

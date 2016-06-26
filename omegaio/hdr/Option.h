@@ -30,7 +30,7 @@ public:
     static string basicHelpBlock(string head, OperationType op1, OperationType op2);
     static string fullHelpBlock(string head, OperationType op1, OperationType op2);
     static string basicHelp(AppInfo * appInfo);
-    static string progInfoHelp();
+    static string progInfoHelp(AppInfo * appInfo, string head, bool withVersion);
     static string sourcesHelp();
 };
 

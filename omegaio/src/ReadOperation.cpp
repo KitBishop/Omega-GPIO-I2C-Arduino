@@ -36,7 +36,6 @@ bool ReadOperation::execute(AppInfo * appInfo) {
         appInfo->prtError(opType, "Failed to read from the pin (" + gpioResultStr(r) + ")");
     } else {
         appInfo->prtOutput(v);
-//        appInfo->prtOutput(to_string(v));
         appInfo->result = v;
     }
     delete pin;

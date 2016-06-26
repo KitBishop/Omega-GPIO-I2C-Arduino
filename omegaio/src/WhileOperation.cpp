@@ -36,10 +36,14 @@ bool WhileOperation::execute(AppInfo * appInfo) {
 
     bool ok = true;
 
-    appInfo->prtReport("Starting while loop with condition:" + condition->toString());
+    appInfo->prtReport("Starting while loop:" + condition->toString());
     while (ok && condition->execute(this, appInfo) && !appInfo->breaking) {
         appInfo->prtReport("Starting loop body");
         ok = Processing::executeNodes(appInfo, body);
+        if (appInfo->continuing) {
+            appInfo->breaking = false;
+            appInfo->continuing = false;
+        }
     }
 
     if (appInfo->breaking) {
