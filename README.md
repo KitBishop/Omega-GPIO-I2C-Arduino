@@ -1,8 +1,6 @@
 # **Omega-GPIO-I2C-Arduino**
 A suite of libraries and programs that provide access on the Omega to GPIO pins, I2C devices and connected Arduino systems.
 
-###**_DO NOT USE YET_**
-**Currently code is incomplete and in progress**
 
 The components that make up the suite are:
 * libnewgpio – a C++ library for access to Omega GPIO pins
