@@ -286,6 +286,8 @@ I2C_Result I2CAccess::readBuffer(unsigned char devAddr, I2C_Data & data, int num
 }
 
 I2C_Result I2CAccess::readNBytes(unsigned char devAddr, unsigned char regAddr, unsigned long & val, int numBytes) {
+    val = 0;
+    
     I2C_Data data;
     I2C_Result res = readBuffer(devAddr, regAddr, data, numBytes);
     if (res == I2C_OK){
