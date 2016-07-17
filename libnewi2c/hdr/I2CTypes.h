@@ -26,6 +26,9 @@ typedef struct I2C_Data {
     unsigned char data[I2C_BUFFER_SIZE];
 } I2C_Data;
 
+#define swap16(v)       ((((uint16_t)(v) & 0xff) << 8) | (((uint16_t)(v) & 0xff00) >> 8))
+#define swap32(v)       ((((uint32_t)(v) & 0xff) << 24) | (((uint32_t)(v) & 0xff00) << 8) | (((uint32_t)(v) & 0xff0000) >> 8) | (((uint32_t)(v) & 0xff000000) >> 24))
+
 #ifdef __cplusplus
 }
 #endif
