@@ -34,17 +34,17 @@ while $0
 
 # Set expled to red when count is a multiple of 3
     if "(count % 3) == 0"
-	expled rgb 100 0 0
+        expled rgb 100 0 0
     endif
 
 # Set expled to green when count is a (multiple of 3) + 1
     if "(count % 3) == 1"
-	expled rgb 0 100 0
+        expled rgb 0 100 0
     endif
 
 # Set expled to blue when count is a (multiple of 3) + 2
     if "(count % 3) == 2"
-	expled rgb 0 0 100
+        expled rgb 0 0 100
     endif
 
 # Delay for 1 second
@@ -52,7 +52,7 @@ while $0
 
 # Display current count when count is a multiple of 10
     if "((count % 10) == 0) && (count != 0)"
-	exec "echo count is now {count}"
+        exec "echo count is now {count}"
     endif
     
 # Increment count    
@@ -63,12 +63,12 @@ while $0
     if $[stop.txt]
 
 # Read first line from file stop.txt to variable stopval
-	filein "stop.txt" stopval
+        filein "stop.txt" stopval
 
 # Test if stopval read is 99 and break main loop
-	if "stopval == 99"
-	    break
-	endif
+        if "stopval == 99"
+            break
+        endif
     endif
     
 # End of while loop    

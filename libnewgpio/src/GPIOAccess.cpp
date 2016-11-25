@@ -594,11 +594,7 @@ GPIO_Result GPIOAccess::stopPWM(int pinNum) {
     GPIO_Result res = checkPinAndAccessDir(pinNum, GPIO_OUTPUT);
     if (res == GPIO_OK) {
         createPwmPinIfNeeded(pinNum);
-        if (!pwmPin[pinNum]->isTone()) {
-            res = pwmPin[pinNum]->stopPWM();
-        } else {
-            res = GPIO_INVALID_OP;
-        }
+        res = pwmPin[pinNum]->stopPWM();
     }
 
     return res;
@@ -676,11 +672,7 @@ GPIO_Result GPIOAccess::stopTone(int pinNum) {
     GPIO_Result res = checkPinAndAccessDir(pinNum, GPIO_OUTPUT);
     if (res == GPIO_OK) {
         createPwmPinIfNeeded(pinNum);
-        if (pwmPin[pinNum]->isTone()) {
-            res = pwmPin[pinNum]->stopPWM();
-        } else {
-            res = GPIO_INVALID_OP;
-        }
+        res = pwmPin[pinNum]->stopPWM();
     }
 
     return res;
