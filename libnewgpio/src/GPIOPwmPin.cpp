@@ -94,7 +94,7 @@ GPIO_Result GPIOPwmPin::stopPWM() {
         return res;
     }
     
-    if ((dir != GPIO_OUTPUT) || !pwmRunning) {
+    if (dir != GPIO_OUTPUT) {
         return GPIO_INVALID_OP;
     }
 
