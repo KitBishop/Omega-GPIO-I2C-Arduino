@@ -3,6 +3,7 @@
 #include "GPIOAccess.h"
 #include "GPIOPin.h"
 #include "ForkAccess.h"
+#include "TimeHelper.h"
 
 using namespace std;
 
