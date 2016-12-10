@@ -635,11 +635,7 @@ GPIO_Result GPIOAccess::isPWMRunning(int pinNum, bool &running) {
     running = false;
     if (res == GPIO_OK) {
         createPwmPinIfNeeded(pinNum);
-        if (!pwmPin[pinNum]->isTone()) {
-            running = pwmPin[pinNum]->isPWMRunning();
-        } else {
-            res = GPIO_INVALID_OP;
-        }
+        running = pwmPin[pinNum]->isPWMRunning();
     }
 
     return res;
@@ -713,11 +709,7 @@ GPIO_Result GPIOAccess::isToneRunning(int pinNum, bool &running) {
     running = false;
     if (res == GPIO_OK) {
         createPwmPinIfNeeded(pinNum);
-        if (pwmPin[pinNum]->isTone()) {
-            running = pwmPin[pinNum]->isPWMRunning();
-        } else {
-            res = GPIO_INVALID_OP;
-        }
+        running = pwmPin[pinNum]->isPWMRunning();
     }
 
     return res;
